@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homework Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #242836;
+      --border: #2e3345;
+      --text: #f0f2f8;
+      --text-muted: #9aa3b8;
+      --primary: #6c8cff;
+      --primary-hover: #8aa4ff;
+      --success: #3ecf8e;
+      --warning: #f5a524;
+      --danger: #f56565;
+      --radius: 14px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.35);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Background gradient orbs */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.25;
+      z-index: -1;
+      pointer-events: none;
+    }
+    body::before {
+      width: 400px;
+      height: 400px;
+      background: var(--primary);
+      top: -100px;
+      left: -100px;
+      animation: float 12s ease-in-out infinite;
+    }
+    body::after {
+      width: 350px;
+      height: 350px;
+      background: #a78bfa;
+      bottom: -80px;
+      right: -80px;
+      animation: float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, 40px); }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.6s ease-out;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--primary), #a78bfa);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 16px rgba(108, 140, 255, 0.4);
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.15rem;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s ease-out 0.1s both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .stat-card.total .stat-value { color: var(--primary); }
+    .stat-card.upcoming .stat-value { color: var(--warning); }
+    .stat-card.overdue .stat-value { color: var(--danger); }
+    .stat-card.done .stat-value { color: var(--success); }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease-out 0.2s both;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.4rem;
+      background: var(--surface);
+      padding: 0.3rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.45rem 0.9rem;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .filter-btn:hover {
+      color: var(--text);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 10px rgba(108, 140, 255, 0.35);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.65rem 1.2rem;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 16px rgba(108, 140, 255, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(108, 140, 255, 0.5);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-ghost {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(245, 101, 101, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(245, 101, 101, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(245, 101, 101, 0.25);
+    }
+
+    /* Assignment list */
+    .assignments {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .assignment-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: start;
+      transition: all var(--transition);
+      animation: cardIn 0.4s ease-out both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .assignment-card:hover {
+      border-color: #3d4460;
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .assignment-card.completed {
+      opacity: 0.65;
+    }
+
+    .assignment-card.completed .assignment-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .assignment-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary);
+      transition: background var(--transition);
+    }
+
+    .assignment-card.overdue::before { background: var(--danger); }
+    .assignment-card.upcoming::before { background: var(--warning); }
+    .assignment-card.completed::before { background: var(--success); }
+
+    .check-wrap {
+      padding-top: 0.15rem;
+    }
+
+    .check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--transition);
+      background: transparent;
+      flex-shrink: 0;
+    }
+
+    .check:hover {
+      border-color: var(--primary);
+    }
+
+    .check.done {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .check.done::after {
+      content: '✓';
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .assignment-body {
+      min-width: 0;
+    }
+
+    .assignment-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.85rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .class-badge {
+      background: rgba(108, 140, 255, 0.15);
+      color: var(--primary);
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .assignment-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      word-break: break-word;
+    }
+
+    .assignment-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      white-space: pre-wrap;
+    }
+
+    .due-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .due-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 7px;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+
+    .due-badge.ok {
+      background: rgba(108, 140, 255, 0.12);
+      color: var(--primary);
+    }
+
+    .due-badge.soon {
+      background: rgba(245, 165, 36, 0.15);
+      color: var(--warning);
+    }
+
+    .due-badge.late {
+      background: rgba(245, 101, 101, 0.15);
+      color: var(--danger);
+    }
+
+    .due-badge.done {
+      background: rgba(62, 207, 142, 0.15);
+      color: var(--success);
+    }
+
+    .teacher {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--transition);
+      font-size: 0.9rem;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: #4a5168;
+      background: var(--border);
+    }
+
+    .icon-btn.delete:hover {
+      color: var(--danger);
+      border-color: rgba(245, 101, 101, 0.4);
+      background: rgba(245, 101, 101, 0.12);
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 4rem 1.5rem;
+      color: var(--text-muted);
+      animation: fadeUp 0.5s ease-out;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty h3 {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.75rem;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      transform: scale(0.92) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.open .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted);
+    }
+
+    .form-group label .optional {
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 500px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      z-index: 200;
+      opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .assignment-card {
+        grid-template-columns: auto 1fr;
+      }
+      .card-actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: flex-end;
+      }
+      h1 { font-size: 1.35rem; }
+    }
+
+    /* Stagger animation for cards */
+    .assignment-card:nth-child(1) { animation-delay: 0.05s; }
+    .assignment-card:nth-child(2) { animation-delay: 0.1s; }
+    .assignment-card:nth-child(3) { animation-delay: 0.15s; }
+    .assignment-card:nth-child(4) { animation-delay: 0.2s; }
+    .assignment-card:nth-child(5) { animation-delay: 0.25s; }
+    .assignment-card:nth-child(6) { animation-delay: 0.3s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">📚</div>
+        <div>
+          <h1>Homework Tracker</h1>
+          <p class="subtitle">Stay on top of your assignments</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="openModalBtn">
+        <span>+</span> New Assignment
+      </button>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card total">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card upcoming">
+        <div class="stat-value" id="statUpcoming">0</div>
+        <div class="stat-label">Upcoming</div>
+      </div>
+      <div class="stat-card overdue">
+        <div class="stat-value" id="statOverdue">0</div>
+        <div class="stat-label">Overdue</div>
+      </div>
+      <div class="stat-card done">
+        <div class="stat-value" id="statDone">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="active">Active</button>
+        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+        <button class="filter-btn" data-filter="overdue">Overdue</button>
+        <button class="filter-btn" data-filter="completed">Done</button>
+      </div>
+    </div>
+
+    <div class="assignments" id="assignmentList"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">✨ New Assignment</h2>
+      <form id="assignmentForm">
+        <input type="hidden" id="editId" />
+        <div class="form-group">
+          <label for="className">Class Name</label>
+          <input type="text" id="className" placeholder="e.g. Math 101" required maxlength="60" />
+        </div>
+        <div class="form-group">
+          <label for="title">Assignment / Work</label>
+          <input type="text" id="title" placeholder="e.g. Chapter 5 problems" required maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label for="description">Description <span class="optional">(optional)</span></label>
+          <textarea id="description" placeholder="Any extra details or notes..." maxlength="500"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dueDate">Due Date</label>
+            <input type="date" id="dueDate" required />
+          </div>
+          <div class="form-group">
+            <label for="teacher">Teacher <span class="optional">(optional)</span></label>
+            <input type="text" id="teacher" placeholder="e.g. Ms. Smith" maxlength="50" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Add Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'homework-tracker-v1';
+
+    let assignments = [];
+    let currentFilter = 'all';
+    let editingId = null;
+
+    // DOM
+    const listEl = document.getElementById('assignmentList');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const form = document.getElementById('assignmentForm');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const toastEl = document.getElementById('toast');
+
+    // Load from localStorage
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        assignments = raw ? JSON.parse(raw) : [];
+      } catch {
+        assignments = [];
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2400);
+    }
+
+    function openModal(editItem = null) {
+      editingId = editItem ? editItem.id : null;
+      document.getElementById('modalTitle').textContent = editItem ? '✏️ Edit Assignment' : '✨ New Assignment';
+      document.getElementById('submitBtn').textContent = editItem ? 'Save Changes' : 'Add Assignment';
+      document.getElementById('editId').value = editItem ? editItem.id : '';
+      document.getElementById('className').value = editItem ? editItem.className : '';
+      document.getElementById('title').value = editItem ? editItem.title : '';
+      document.getElementById('description').value = editItem ? (editItem.description || '') : '';
+      document.getElementById('dueDate').value = editItem ? editItem.dueDate : '';
+      document.getElementById('teacher').value = editItem ? (editItem.teacher || '') : '';
+      modalOverlay.classList.add('open');
+      setTimeout(() => document.getElementById('className').focus(), 100);
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('open');
+      form.reset();
+      editingId = null;
+    }
+
+    openModalBtn.addEventListener('click', () => openModal());
+    cancelBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal();
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const className = document.getElementById('className').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const dueDate = document.getElementById('dueDate').value;
+      const teacher = document.getElementById('teacher').value.trim();
+
+      if (!className || !title || !dueDate) return;
+
+      if (editingId) {
+        const idx = assignments.findIndex(a => a.id === editingId);
+        if (idx !== -1) {
+          assignments[idx] = {
+            ...assignments[idx],
+            className,
+            title,
+            description,
+            dueDate,
+            teacher
+          };
+          showToast('Assignment updated');
+        }
+      } else {
+        assignments.push({
+          id: crypto.randomUUID(),
+          className,
+          title,
+          description,
+          dueDate,
+          teacher,
+          completed: false,
+          createdAt: new Date().toISOString()
+        });
+        showToast('Assignment added');
+      }
+
+      save();
+      closeModal();
+      render();
+    });
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    function getStatus(item) {
+      if (item.completed) return 'completed';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(item.dueDate + 'T00:00:00');
+      const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+      if (diff < 0) return 'overdue';
+      if (diff <= 3) return 'upcoming';
+      return 'ok';
+    }
+
+    function formatDue(item) {
+      const status = getStatus(item);
+      if (item.completed) {
+        return { text: 'Completed', cls: 'done' };
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(item.dueDate + 'T00:00:00');
+      const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+      const dateStr = due.toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      if (diff < 0) {
+        const days = Math.abs(diff);
+        return {
+          text: `${days} day${days !== 1 ? 's' : ''} overdue · ${dateStr}`,
+          cls: 'late'
+        };
+      }
+      if (diff === 0) return { text: `Due today · ${dateStr}`, cls: 'soon' };
+      if (diff === 1) return { text: `Due tomorrow · ${dateStr}`, cls: 'soon' };
+      if (diff <= 3) return { text: `Due in ${diff} days · ${dateStr}`, cls: 'soon' };
+      return { text: `Due ${dateStr}`, cls: 'ok' };
+    }
+
+    function updateStats() {
+      const total = assignments.length;
+      let upcoming = 0, overdue = 0, done = 0;
+      assignments.forEach(a => {
+        const s = getStatus(a);
+        if (s === 'completed') done++;
+        else if (s === 'overdue') overdue++;
+        else if (s === 'upcoming' || s === 'ok') upcoming++;
+      });
+      // Count only non-completed for upcoming
+      upcoming = assignments.filter(a => !a.completed && getStatus(a) !== 'overdue').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statUpcoming').textContent = upcoming;
+      document.getElementById('statOverdue').textContent = overdue;
+      document.getElementById('statDone').textContent = done;
+    }
+
+    function getFiltered() {
+      return assignments
+        .filter(a => {
+          const s = getStatus(a);
+          if (currentFilter === 'all') return true;
+          if (currentFilter === 'active') return !a.completed;
+          if (currentFilter === 'completed') return a.completed;
+          if (currentFilter === 'overdue') return s === 'overdue';
+          if (currentFilter === 'upcoming') return !a.completed && (s === 'upcoming' || s === 'ok');
+          return true;
+        })
+        .sort((a, b) => {
+          // Incomplete first, then by due date
+          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+          return a.dueDate.localeCompare(b.dueDate);
+        });
+    }
+
+    function render() {
+      updateStats();
+      const items = getFiltered();
+
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty">
+            <div class="empty-icon">📭</div>
+            <h3>${currentFilter === 'all' ? 'No assignments yet' : 'Nothing here'}</h3>
+            <p>${currentFilter === 'all' ? 'Click “New Assignment” to get started' : 'Try a different filter'}</p>
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = items.map(item => {
+        const status = getStatus(item);
+        const due = formatDue(item);
+        return `
+          <article class="assignment-card ${status}" data-id="${item.id}">
+            <div class="check-wrap">
+              <button class="check ${item.completed ? 'done' : ''}" data-action="toggle" title="Mark complete"></button>
+            </div>
+            <div class="assignment-body">
+              <div class="assignment-meta">
+                <span class="class-badge">${escapeHtml(item.className)}</span>
+                ${item.teacher ? `<span class="teacher">👤 ${escapeHtml(item.teacher)}</span>` : ''}
+              </div>
+              <h3 class="assignment-title">${escapeHtml(item.title)}</h3>
+              ${item.description ? `<p class="assignment-desc">${escapeHtml(item.description)}</p>` : ''}
+              <div class="due-info">
+                <span class="due-badge ${due.cls}">📅 ${due.text}</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button class="icon-btn" data-action="edit" title="Edit">✏️</button>
+              <button class="icon-btn delete" data-action="delete" title="Delete">🗑️</button>
+            </div>
+          </article>`;
+      }).join('');
+
+      // Event delegation
+      listEl.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const card = e.target.closest('.assignment-card');
+          const id = card.dataset.id;
+          const action = e.target.closest('[data-action]').dataset.action;
+
+          if (action === 'toggle') {
+            const item = assignments.find(a => a.id === id);
+            if (item) {
+              item.completed = !item.completed;
+              save();
+              render();
+              showToast(item.completed ? 'Marked complete 🎉' : 'Marked incomplete');
+            }
+          } else if (action === 'edit') {
+            const item = assignments.find(a => a.id === id);
+            if (item) openModal(item);
+          } else if (action === 'delete') {
+            if (confirm('Delete this assignment?')) {
+              assignments = assignments.filter(a => a.id !== id);
+              save();
+              render();
+              showToast('Assignment deleted');
+            }
+          }
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Init
+    load();
+    // Set default due date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('dueDate').value = tomorrow.toISOString().slice(0, 10);
+    render();
+  </script>
+</body>
+</html>
